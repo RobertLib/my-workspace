@@ -1,0 +1,33 @@
+{
+  "name": "my-workspace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx nodemon index.js",
+    "start": "node index.js",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "migrate": "node migrate.js",
+    "postinstall": "cd client && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RobertLib/my-workspace.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RobertLib/my-workspace/issues"
+  },
+  "homepage": "https://github.com/RobertLib/my-workspace#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7",
+    "express": "^5.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1"
+  },
+  "type": "module"
+}
