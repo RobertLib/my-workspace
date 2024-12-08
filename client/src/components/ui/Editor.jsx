@@ -8,6 +8,7 @@ import sanitizeHTML from "../../utils/sanitizeHTML";
 export default function Editor({
   className,
   error,
+  errors,
   label,
   name,
   onChange,
@@ -36,6 +37,8 @@ export default function Editor({
     const sanitizedContent = sanitizeHTML(editorRef.current?.innerHTML ?? "");
     onChange?.(sanitizedContent, name);
   };
+
+  const errorValue = error || errors?.errors?.[name];
 
   return (
     <label className={className} onClick={handleFocus} style={style}>
@@ -88,9 +91,9 @@ export default function Editor({
           onInput={handleInput}
           ref={editorRef}
         />
-        {error && (
+        {errorValue && (
           <div className="Editor-error collapse-down text-danger text-sm">
-            {error}
+            {errorValue}
           </div>
         )}
       </div>
@@ -101,6 +104,7 @@ export default function Editor({
 Editor.propTypes = {
   className: PropTypes.string,
   error: PropTypes.string,
+  errors: PropTypes.object,
   label: PropTypes.string,
   name: PropTypes.string,
   onChange: PropTypes.func,

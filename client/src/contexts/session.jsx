@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import PropTypes from "prop-types";
 
@@ -15,9 +15,9 @@ export const SessionProvider = ({ children }) => {
   );
 
   return (
-    <SessionContext.Provider value={{ currentUser, setCurrentUser }}>
+    <SessionContext value={{ currentUser, setCurrentUser }}>
       {children}
-    </SessionContext.Provider>
+    </SessionContext>
   );
 };
 
@@ -25,4 +25,4 @@ SessionProvider.propTypes = {
   children: PropTypes.node,
 };
 
-export const useSession = () => useContext(SessionContext);
+export default SessionContext;

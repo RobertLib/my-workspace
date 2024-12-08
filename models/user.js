@@ -2,8 +2,22 @@ import Model from "./model.js";
 import db from "../db.js";
 import bcrypt from "bcrypt";
 
+const properties = ["email", "password", "role"];
+
+function serialize(data) {
+  const obj = {};
+
+  properties.forEach((prop) => {
+    if (data[prop] !== undefined) {
+      obj[prop] = data[prop];
+    }
+  });
+
+  return obj;
+}
+
 export default class User extends Model {
-  constructor(data) {
+  constructor(data = {}) {
     super(data);
 
     this.email = data.email;
@@ -11,16 +25,67 @@ export default class User extends Model {
     this.role = data.role;
   }
 
+  static async find({
+    sortKey = "id",
+    sortOrder = "desc",
+    limit = 20,
+    offset = 0,
+    deleted = "false",
+    email = "",
+    role = "",
+  } = {}) {
+    let whereQuery = `WHERE "deletedAt" IS ${
+      deleted === "true" ? "NOT" : ""
+    } NULL`;
+
+    const values = [];
+
+    if (email) {
+      whereQuery += ` AND unaccent("email") ILIKE unaccent($1)`;
+      values.push(`%${email}%`);
+    }
+
+    if (role) {
+      whereQuery += ` AND "role" = $${values.length + 1}`;
+      values.push(role);
+    }
+
+    const usersQuery = `
+      SELECT "id", "email", "role" FROM "users"
+      ${whereQuery}
+      ORDER BY "${sortKey}" ${sortOrder}
+      LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+
+    const countQuery = `SELECT COUNT(*) FROM "users" ${whereQuery}`;
+
+    const usersResult = await db.query(usersQuery, [...values, limit, offset]);
+    const countResult = await db.query(countQuery, values);
+
+    const users = usersResult.rows.map((user) => new User(user));
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    return { data: users, total };
+  }
+
+  static async findById(id) {
+    const { rows } = await db.query(
+      `SELECT "id", "email", "role" FROM "users" WHERE "id" = $1`,
+      [id]
+    );
+
+    return rows[0] ? new User(rows[0]) : null;
+  }
+
   static async findByEmail(email) {
     const { rows } = await db.query(
-      'SELECT * FROM "users" WHERE "email" = $1',
+      'SELECT "id", "email", "password", "role" FROM "users" WHERE "email" = $1',
       [email]
     );
 
     return rows[0] ? new User(rows[0]) : null;
   }
 
-  static async create({ email, password, passwordConfirm } = {}) {
+  static async create({ email, password, passwordConfirm, role }) {
     try {
       const errors = {};
 
@@ -49,12 +114,26 @@ export default class User extends Model {
 
       const hash = await bcrypt.hash(password, 12);
 
-      const { rows } = await db.query(
-        'INSERT INTO "users" ("email", "password") VALUES ($1, $2) RETURNING "id", "email", "role"',
-        [email, hash]
-      );
+      const userData = {
+        email,
+        password: hash,
+        role: role ?? "USER",
+      };
 
-      return rows[0];
+      const fields = Object.keys(userData);
+      const values = Object.values(userData);
+
+      const quotedFields = fields.map((field) => `"${field}"`).join(", ");
+      const placeholders = fields.map((_, index) => `$${index + 1}`).join(", ");
+
+      const query = `
+        INSERT INTO "users" (${quotedFields})
+        VALUES (${placeholders})
+        RETURNING "id", "email", "role"`;
+
+      const { rows } = await db.query(query, values);
+
+      return new User(rows[0]);
     } catch (error) {
       if (error.code === "23505") {
         return {
@@ -67,5 +146,54 @@ export default class User extends Model {
 
       throw error;
     }
+  }
+
+  static async update(id, data) {
+    try {
+      const userData = serialize(data);
+
+      delete userData.password;
+
+      userData.updatedAt = new Date();
+
+      const fields = Object.keys(userData);
+      const values = Object.values(userData);
+
+      const updateFields = fields
+        .map((field, index) => `"${field}" = $${index + 1}`)
+        .join(", ");
+
+      values.push(id);
+
+      const query = `
+        UPDATE "users"
+        SET ${updateFields}
+        WHERE "id" = $${values.length}
+        RETURNING "id", "email", "role"`;
+
+      const { rows } = await db.query(query, values);
+
+      return new User(rows[0]);
+    } catch (error) {
+      if (error.code === "23505") {
+        return {
+          errorMessage: "Invalid input.",
+          errors: {
+            email: "User with this email already exists.",
+          },
+        };
+      }
+
+      throw error;
+    }
+  }
+
+  static async delete(id) {
+    const { rows } = await db.query(
+      'UPDATE "users" SET "deletedAt" = NOW() WHERE "id" = $1 RETURNING "id", "email", "role"',
+      [id]
+    );
+
+    return rows[0] ? new User(rows[0]) : null;
   }
 }

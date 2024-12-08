@@ -1,76 +1,81 @@
-import { useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState, useTransition } from "react";
 import apiFetch from "../utils/apiFetch";
 import logger from "../utils/logger";
+import SnackbarContext from "../contexts/snackbar";
 
 const cache = {};
 
-export default function useQuery(url, dependencies = [], options = null) {
+export default function useQuery(url, options = null) {
   const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const { enqueueSnackbar } = use(SnackbarContext);
+
+  const optionsString = JSON.stringify(options);
 
   const loadData = useCallback(async () => {
-    const cacheUrlKey = url;
-    const cachePathnameKey = url.split("?")[0];
+    const cacheUrl = url;
+    const cachePathname = url.split("?")[0];
 
     const addToCache = (newData) => {
-      cache[cacheUrlKey] = newData;
-      cache[cachePathnameKey] = newData;
+      cache[cacheUrl] = newData;
+      cache[cachePathname] = newData;
     };
 
     const deleteFromCache = () => {
-      delete cache[cacheUrlKey];
-      delete cache[cachePathnameKey];
+      delete cache[cacheUrl];
+      delete cache[cachePathname];
     };
 
-    try {
-      setIsLoading(true);
+    startTransition(async () => {
+      try {
+        if (options) {
+          const cachedData = cache[options.cacheUrl];
 
-      if (options) {
-        const cachedData = cache[options.cacheKey];
+          if (cachedData) {
+            if (typeof cachedData === "object" && cachedData.data) {
+              const foundData = cachedData.data.find(
+                (item) => String(item.id) === String(options.id)
+              );
 
-        if (cachedData) {
-          if (typeof cachedData === "object" && cachedData.data) {
-            const foundData = cachedData.data.find(
-              (item) => String(item.id) === String(options.findId)
-            );
-
-            if (foundData) {
-              setData(foundData);
+              if (foundData) {
+                setData(foundData);
+              }
             }
           }
+        } else {
+          const cachedData = cache[cacheUrl];
+
+          if (cachedData) {
+            setData(cachedData);
+          }
         }
-      } else {
-        const cachedData = cache[cacheUrlKey];
 
-        if (cachedData) {
-          setData(cachedData);
+        const response = await apiFetch(url);
+
+        if (!response.ok) {
+          throw new Error(response.statusText);
         }
-      }
 
-      const response = await apiFetch(url);
+        const newData = await response.json();
 
-      if (!response.ok) {
-        throw new Error(response.statusText);
-      }
+        if (newData) {
+          setData(newData);
+          addToCache(newData);
+        } else {
+          setData(null);
+          deleteFromCache();
+        }
+      } catch (error) {
+        logger.error("API fetch failed:", error);
 
-      const newData = await response.json();
+        enqueueSnackbar("Failed to fetch data.", "danger");
 
-      if (newData) {
-        setData(newData);
-        addToCache(newData);
-      } else {
         setData(null);
         deleteFromCache();
       }
-    } catch (error) {
-      logger.error("API fetch failed:", error);
-
-      setData(null);
-      deleteFromCache();
-    } finally {
-      setIsLoading(false);
-    }
-  }, [JSON.stringify(dependencies), JSON.stringify(options), url]);
+    });
+  }, [enqueueSnackbar, optionsString, url]);
 
   useEffect(() => {
     loadData();
@@ -78,7 +83,7 @@ export default function useQuery(url, dependencies = [], options = null) {
 
   return {
     data: data?.data ?? data,
-    isLoading,
+    isLoading: isPending,
     refetch: () => loadData(),
     total: data?.total,
   };

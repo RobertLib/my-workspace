@@ -1,18 +1,40 @@
 import "./Select.css";
+import { useRef, useState } from "react";
 import cn from "../../utils/cn";
 import PropTypes from "prop-types";
 
 export default function Select({
   className,
+  defaultValue,
   dim,
   error,
+  errors,
   fullWidth,
   label,
+  name,
+  onChange,
   options,
   required,
   style,
   ...rest
 }) {
+  const selectRef = useRef(null);
+
+  const [valueState, setValueState] = useState(defaultValue);
+
+  if (valueState) {
+    setTimeout(() => {
+      selectRef.current.value = valueState;
+    }, 0);
+  }
+
+  const handleChange = ({ target: { name, value } }) => {
+    onChange?.(value, name);
+    setValueState(value);
+  };
+
+  const errorValue = error || errors?.errors?.[name];
+
   return (
     <label className={className} style={style}>
       {label && (
@@ -28,7 +50,11 @@ export default function Select({
           error && "is-invalid",
           fullWidth && "w-full"
         )}
+        name={name}
+        onChange={handleChange}
+        ref={selectRef}
         required={required}
+        value={valueState}
       >
         {options.map(({ label, value }) => (
           <option key={value} value={value}>
@@ -36,9 +62,9 @@ export default function Select({
           </option>
         ))}
       </select>
-      {error && (
+      {errorValue && (
         <div className="Select-error collapse-down text-danger text-sm">
-          {error}
+          {errorValue}
         </div>
       )}
     </label>
@@ -47,10 +73,14 @@ export default function Select({
 
 Select.propTypes = {
   className: PropTypes.string,
+  defaultValue: PropTypes.string,
   dim: PropTypes.oneOf(["sm", "md", "lg"]),
   error: PropTypes.string,
+  errors: PropTypes.object,
   fullWidth: PropTypes.bool,
   label: PropTypes.string,
+  name: PropTypes.string,
+  onChange: PropTypes.func,
   options: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string.isRequired,

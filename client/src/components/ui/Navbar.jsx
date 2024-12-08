@@ -1,12 +1,14 @@
-import { Link, useLocation } from "react-router-dom";
-import { useDrawer } from "../../contexts/drawer";
-import { useSession } from "../../contexts/session";
+import { Link, useLocation } from "react-router";
+import { use } from "react";
+import DrawerContext from "../../contexts/drawer";
 import Dropdown from "./Dropdown";
+import Menu from "../../assets/icons/Menu";
+import SessionContext from "../../contexts/session";
 
 export default function Navbar() {
-  const { currentUser } = useSession();
+  const { currentUser } = use(SessionContext);
+  const { toggleDrawer } = use(DrawerContext);
   const { pathname } = useLocation();
-  const { toggleDrawer } = useDrawer();
 
   return (
     <nav className="navbar">
@@ -19,13 +21,7 @@ export default function Navbar() {
               style={{ marginLeft: "-1rem" }}
               type="button"
             >
-              <img
-                alt="menu"
-                className="icon"
-                height={30}
-                src="/icons/menu.svg"
-                width={30}
-              />
+              <Menu />
             </button>
           )}
 

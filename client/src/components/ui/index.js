@@ -1,5 +1,5 @@
 export { default as Accordion } from "./Accordion";
-export { default as Breadcrumb } from "./Breadcrumb";
+export { default as Breadcrumbs } from "./Breadcrumbs";
 export { default as Button } from "./Button";
 export { default as DataTable } from "./DataTable";
 export { default as DescriptionList } from "./DescriptionList";
@@ -8,6 +8,7 @@ export { default as Drawer } from "./Drawer";
 export { default as Dropdown } from "./Dropdown";
 export { default as DynamicInputs } from "./DynamicInputs";
 export { default as Editor } from "./Editor";
+export { default as ErrorMessage } from "./ErrorMessage";
 export { default as Input } from "./Input";
 export { default as Navbar } from "./Navbar";
 export { default as Pagination } from "./Pagination";

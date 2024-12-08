@@ -1,36 +1,23 @@
-import { Button, Input } from "../../components/ui";
+import { Button, ErrorMessage, Input } from "../../components/ui";
 import { jwtDecode } from "jwt-decode";
-import { Link, useNavigate } from "react-router-dom";
-import { useSession } from "../../contexts/session";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { use, useActionState } from "react";
 import apiFetch from "../../utils/apiFetch";
 import logger from "../../utils/logger";
+import SessionContext from "../../contexts/session";
 
 export default function Register() {
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-    passwordConfirm: "",
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [errors, setErrors] = useState(null);
-
-  const { setCurrentUser } = useSession();
+  const { setCurrentUser } = use(SessionContext);
 
   const navigate = useNavigate();
 
-  const handleChange = ({ target: { name, value } }) => {
-    setData((prevState) => ({ ...prevState, [name]: value }));
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
+  const formState = async (prevState, formData) => {
     try {
-      setIsLoading(true);
-      setErrors(null);
+      const data = {
+        email: formData.get("email"),
+        password: formData.get("password"),
+        passwordConfirm: formData.get("passwordConfirm"),
+      };
 
       const response = await apiFetch("/api/register", {
         method: "POST",
@@ -40,8 +27,7 @@ export default function Register() {
       const result = await response.json();
 
       if (!response.ok) {
-        setErrors(result);
-        return;
+        return result;
       }
 
       logger.info("User created:", result);
@@ -51,72 +37,62 @@ export default function Register() {
       setCurrentUser(jwtDecode(result.token));
 
       navigate("/");
+
+      return null;
     } catch (error) {
       logger.error("Error creating user:", error);
-    } finally {
-      setIsLoading(false);
+
+      return { errorMessage: "An error occurred. Please try again." };
     }
   };
+
+  const [errors, formAction, isPending] = useActionState(formState, null);
 
   return (
     <div className="container container-sm">
       <h1>Register</h1>
 
-      <form
-        className="panel"
-        onSubmit={handleSubmit}
-        style={{ padding: "2rem" }}
-      >
-        {errors?.errorMessage && (
-          <div className="alert alert-danger" style={{ marginBottom: "1rem" }}>
-            {errors.errorMessage}
-          </div>
-        )}
+      <form action={formAction} className="panel" style={{ padding: "2rem" }}>
+        <ErrorMessage message={errors?.errorMessage} />
 
         <div className="col">
           <Input
             autoComplete="email"
-            error={errors?.errors?.email}
+            errors={errors}
             fullWidth
             label="Email"
             maxLength={255}
             name="email"
-            onChange={handleChange}
             required
             type="email"
-            value={data.email}
           />
 
           <Input
             autoComplete="new-password"
-            error={errors?.errors?.password}
+            errors={errors}
             fullWidth
             label="Password"
             maxLength={255}
             name="password"
-            onChange={handleChange}
             required
             type="password"
-            value={data.password}
           />
 
           <Input
             autoComplete="new-password"
-            error={errors?.errors?.passwordConfirm}
+            errors={errors}
             fullWidth
             label="Confirm Password"
             maxLength={255}
             name="passwordConfirm"
-            onChange={handleChange}
             required
             type="password"
-            value={data.passwordConfirm}
           />
         </div>
 
         <Button
           className="w-full"
-          loading={isLoading}
+          loading={isPending}
           size="lg"
           style={{ marginTop: "1.5rem" }}
           type="submit"

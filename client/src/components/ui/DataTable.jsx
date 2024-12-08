@@ -1,6 +1,6 @@
 import "./DataTable.css";
 import { useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import debounce from "../../utils/debounce";
 import Input from "./Input";
 import Pagination from "./Pagination";
@@ -83,9 +83,9 @@ export default function DataTable({
                     )}
                     {column.filter === "input" && (
                       <Input
-                        defaultValue={filters[column.key] ?? ""}
+                        defaultValue={filters[column.key]}
                         dim="sm"
-                        onChange={debounce(({ target: { value } }) => {
+                        onChange={debounce((value) => {
                           filters[column.key] = value;
 
                           searchParams.set("filters", JSON.stringify(filters));
@@ -99,9 +99,9 @@ export default function DataTable({
                     )}
                     {column.filter === "select" && (
                       <Select
-                        defaultValue={filters[column.key] ?? ""}
+                        defaultValue={filters[column.key]}
                         dim="sm"
-                        onChange={({ target: { value } }) => {
+                        onChange={(value) => {
                           filters[column.key] = value;
 
                           searchParams.set("filters", JSON.stringify(filters));
@@ -168,7 +168,7 @@ export default function DataTable({
       <div className="DataTable-footer">
         <Select
           dim="sm"
-          onChange={({ target: { value } }) => {
+          onChange={(value) => {
             searchParams.set("limit", value);
             setSearchParams(searchParams);
           }}
@@ -192,24 +192,6 @@ export default function DataTable({
     </div>
   );
 }
-
-export const useDataTable = () => {
-  const [searchParams] = useSearchParams();
-
-  const filters = JSON.parse(searchParams.get("filters") ?? "{}");
-  const sortKey = searchParams.get("sortKey") ?? "";
-  const sortOrder = searchParams.get("sortOrder") ?? "asc";
-  const page = parseInt(searchParams.get("page") ?? "1", 10);
-  const limit = parseInt(searchParams.get("limit") ?? "20", 10);
-
-  return {
-    ...filters,
-    sortKey,
-    sortOrder,
-    limit: limit.toString(),
-    offset: String((page - 1) * limit),
-  };
-};
 
 DataTable.propTypes = {
   actions: PropTypes.func,

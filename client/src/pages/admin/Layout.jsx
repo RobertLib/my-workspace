@@ -1,7 +1,8 @@
 import { Drawer } from "../../components/ui";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 import Admin from ".";
 import NoPage from "../NoPage";
+import UserDetail from "./users/user-detail";
 import Users from "./users";
 
 export default function AdminLayout() {
@@ -18,6 +19,7 @@ export default function AdminLayout() {
         <Routes>
           <Route path="" element={<Admin />} />
           <Route path="users" element={<Users />} />
+          <Route path="users/:id" element={<UserDetail />} />
           <Route path="*" element={<NoPage />} />
         </Routes>
       </div>

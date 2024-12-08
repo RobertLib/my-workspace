@@ -1,11 +1,12 @@
 import "./Drawer.css";
-import { Link, useLocation } from "react-router-dom";
-import { useDrawer } from "../../contexts/drawer";
+import { Link, useLocation } from "react-router";
+import { use } from "react";
 import cn from "../../utils/cn";
+import DrawerContext from "../../contexts/drawer";
 import PropTypes from "prop-types";
 
 export default function Drawer({ className, items, style }) {
-  const { isOpen, toggleDrawer } = useDrawer();
+  const { isOpen, toggleDrawer } = use(DrawerContext);
   const { pathname } = useLocation();
 
   if (!isOpen) {

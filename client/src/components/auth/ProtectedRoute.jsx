@@ -1,9 +1,10 @@
-import { Navigate } from "react-router-dom";
-import { useSession } from "../../contexts/session";
+import { Navigate } from "react-router";
+import { use } from "react";
 import PropTypes from "prop-types";
+import SessionContext from "../../contexts/session";
 
 export default function ProtectedRoute({ children, role }) {
-  const { currentUser } = useSession();
+  const { currentUser } = use(SessionContext);
 
   if (!currentUser || (role && currentUser.role !== role)) {
     return <Navigate to="/auth/login" replace />;

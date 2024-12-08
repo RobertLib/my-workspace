@@ -13,9 +13,9 @@ export default function DynamicInputs({
 }) {
   const [inputs, setInputs] = useState([""]);
 
-  const handleInputChange = (index, { target }) => {
+  const handleInputChange = (index, value) => {
     const newInputs = [...inputs];
-    newInputs[index] = target.value;
+    newInputs[index] = value;
 
     setInputs(newInputs);
     onChange?.(newInputs);
@@ -40,7 +40,7 @@ export default function DynamicInputs({
       {inputs.map((value, index) => (
         <div className="DynamicInputs-row" key={index}>
           <Input
-            onChange={(event) => handleInputChange(index, event)}
+            onChange={(value) => handleInputChange(index, value)}
             placeholder={placeholder}
             type={type}
             value={value}
