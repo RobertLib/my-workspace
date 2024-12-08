@@ -6,13 +6,17 @@ export default function Select({
   className,
   dim,
   error,
+  errors,
   fullWidth,
   label,
+  name,
   options,
   required,
   style,
   ...rest
 }) {
+  const errorValue = error || errors?.errors?.[name];
+
   return (
     <label className={className} style={style}>
       {label && (
@@ -28,6 +32,7 @@ export default function Select({
           error && "is-invalid",
           fullWidth && "w-full"
         )}
+        name={name}
         required={required}
       >
         {options.map(({ label, value }) => (
@@ -36,9 +41,9 @@ export default function Select({
           </option>
         ))}
       </select>
-      {error && (
+      {errorValue && (
         <div className="Select-error collapse-down text-danger text-sm">
-          {error}
+          {errorValue}
         </div>
       )}
     </label>
@@ -49,8 +54,10 @@ Select.propTypes = {
   className: PropTypes.string,
   dim: PropTypes.oneOf(["sm", "md", "lg"]),
   error: PropTypes.string,
+  errors: PropTypes.object,
   fullWidth: PropTypes.bool,
   label: PropTypes.string,
+  name: PropTypes.string,
   options: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string.isRequired,

@@ -1,5 +1,5 @@
 import "./snackbar.css";
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useState } from "react";
 import { Toast } from "../components/ui";
 import PropTypes from "prop-types";
 
@@ -21,7 +21,7 @@ export const SnackbarProvider = ({ children }) => {
   }, []);
 
   return (
-    <SnackbarContext.Provider value={{ enqueueSnackbar }}>
+    <SnackbarContext value={{ enqueueSnackbar }}>
       <div className="snackbar-container">
         {toasts.map((toast) => (
           <Toast
@@ -33,7 +33,7 @@ export const SnackbarProvider = ({ children }) => {
       </div>
 
       {children}
-    </SnackbarContext.Provider>
+    </SnackbarContext>
   );
 };
 
@@ -41,4 +41,4 @@ SnackbarProvider.propTypes = {
   children: PropTypes.node,
 };
 
-export const useSnackbar = () => useContext(SnackbarContext);
+export default SnackbarContext;

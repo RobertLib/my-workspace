@@ -5,12 +5,16 @@ import PropTypes from "prop-types";
 export default function Textarea({
   className,
   error,
+  errors,
   fullWidth,
   label,
+  name,
   required,
   style,
   ...rest
 }) {
+  const errorValue = error || errors?.errors?.[name];
+
   return (
     <label className={className} style={style}>
       {label && (
@@ -26,11 +30,12 @@ export default function Textarea({
             error && "is-invalid",
             fullWidth && "w-full"
           )}
+          name={name}
           required={required}
         />
-        {error && (
+        {errorValue && (
           <div className="Textarea-error collapse-down text-danger text-sm">
-            {error}
+            {errorValue}
           </div>
         )}
       </span>
@@ -41,8 +46,10 @@ export default function Textarea({
 Textarea.propTypes = {
   className: PropTypes.string,
   error: PropTypes.string,
+  errors: PropTypes.object,
   fullWidth: PropTypes.bool,
   label: PropTypes.string,
+  name: PropTypes.string,
   required: PropTypes.bool,
   style: PropTypes.object,
 };

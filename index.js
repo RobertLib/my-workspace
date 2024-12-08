@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 
 import authRoutes from "./routes/auth.js";
+import adminUsersRoutes from "./routes/admin/users.js";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/api", authRoutes);
+app.use("/api/admin/users", adminUsersRoutes);
 
 app.get("*name", (req, res, next) => {
   res.sendFile(path.join(__dirname, "client", "dist", "index.html"));

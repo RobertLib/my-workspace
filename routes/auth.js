@@ -32,7 +32,7 @@ router.post("/login", async (req, res, next) => {
     { expiresIn: "7d" }
   );
 
-  res.status(200).send({ token });
+  res.send({ token });
 });
 
 router.post("/register", async (req, res, next) => {

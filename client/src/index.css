@@ -317,7 +317,7 @@
     white-space: nowrap;
   }
 
-  .breadcrumb {
+  .breadcrumbs {
     > ol {
       display: flex;
       list-style: none;
@@ -794,12 +794,6 @@
 
   .font-bold {
     font-weight: bold;
-  }
-
-  .icon {
-    @media (prefers-color-scheme: dark) {
-      filter: invert(1);
-    }
   }
 
   .justify-start {

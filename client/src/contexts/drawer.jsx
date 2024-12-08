@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
 const DrawerContext = createContext({
@@ -26,9 +26,7 @@ export const DrawerProvider = ({ children }) => {
   };
 
   return (
-    <DrawerContext.Provider value={{ isOpen, toggleDrawer }}>
-      {children}
-    </DrawerContext.Provider>
+    <DrawerContext value={{ isOpen, toggleDrawer }}>{children}</DrawerContext>
   );
 };
 
@@ -36,6 +34,4 @@ DrawerProvider.propTypes = {
   children: PropTypes.node,
 };
 
-export function useDrawer() {
-  return useContext(DrawerContext);
-}
+export default DrawerContext;

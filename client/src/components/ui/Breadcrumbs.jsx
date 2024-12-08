@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import cn from "../../utils/cn";
 import PropTypes from "prop-types";
 
-export default function Breadcrumb({ className, items, style }) {
+export default function Breadcrumbs({ className, items, style }) {
   return (
     <nav
-      aria-label="Breadcrumb"
-      className={cn("breadcrumb", className)}
+      aria-label="Breadcrumbs"
+      className={cn("breadcrumbs", className)}
       style={style}
     >
       <ol>
@@ -34,7 +34,7 @@ export default function Breadcrumb({ className, items, style }) {
   );
 }
 
-Breadcrumb.propTypes = {
+Breadcrumbs.propTypes = {
   className: PropTypes.string,
   items: PropTypes.arrayOf(
     PropTypes.shape({
