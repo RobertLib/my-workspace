@@ -2,7 +2,7 @@ import Model from "./model.js";
 import db from "../db.js";
 import bcrypt from "bcrypt";
 
-const properties = ["email", "password", "role"];
+const properties = ["email", "password", "role", "resetPasswordToken"];
 
 function serialize(data) {
   const obj = {};
@@ -20,9 +20,9 @@ export default class User extends Model {
   constructor(data = {}) {
     super(data);
 
-    this.email = data.email;
-    this.password = data.password;
-    this.role = data.role;
+    properties.forEach((prop) => {
+      this[prop] = data[prop];
+    });
   }
 
   static async find({
@@ -69,7 +69,7 @@ export default class User extends Model {
 
   static async findById(id) {
     const { rows } = await db.query(
-      `SELECT "id", "email", "role" FROM "users" WHERE "id" = $1`,
+      `SELECT "id", "email", "role", "resetPasswordToken" FROM "users" WHERE "id" = $1`,
       [id]
     );
 
@@ -85,23 +85,23 @@ export default class User extends Model {
     return rows[0] ? new User(rows[0]) : null;
   }
 
-  static async create({ email, password, passwordConfirm, role }) {
+  static async create(data) {
     try {
       const errors = {};
 
-      if (!email) {
+      if (!data.email) {
         errors.email = "Email is required.";
-      } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+      } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(data.email)) {
         errors.email = "Invalid email format.";
       }
-      if (!password) {
+      if (!data.password) {
         errors.password = "Password is required.";
-      } else if (password.length < 6) {
+      } else if (data.password.length < 6) {
         errors.password = "Password must be at least 6 characters long.";
       }
-      if (!passwordConfirm) {
+      if (!data.passwordConfirm) {
         errors.passwordConfirm = "Password confirmation is required.";
-      } else if (password !== passwordConfirm) {
+      } else if (data.password !== data.passwordConfirm) {
         errors.passwordConfirm = "Passwords do not match.";
       }
 
@@ -112,13 +112,9 @@ export default class User extends Model {
         };
       }
 
-      const hash = await bcrypt.hash(password, 12);
+      const hash = await bcrypt.hash(data.password, 12);
 
-      const userData = {
-        email,
-        password: hash,
-        role: role ?? "USER",
-      };
+      const userData = serialize({ ...data, password: hash });
 
       const fields = Object.keys(userData);
       const values = Object.values(userData);
@@ -150,9 +146,31 @@ export default class User extends Model {
 
   static async update(id, data) {
     try {
+      const errors = {};
+
+      if (data.email && !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(data.email)) {
+        errors.email = "Invalid email format.";
+      }
+      if (data.password && data.password.length < 6) {
+        errors.password = "Password must be at least 6 characters long.";
+      }
+      if (data.passwordConfirm && data.password !== data.passwordConfirm) {
+        errors.passwordConfirm = "Passwords do not match.";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        return {
+          errorMessage: "Invalid input.",
+          errors,
+        };
+      }
+
       const userData = serialize(data);
 
-      delete userData.password;
+      if (data.password) {
+        const hash = await bcrypt.hash(data.password, 12);
+        userData.password = hash;
+      }
 
       userData.updatedAt = new Date();
 

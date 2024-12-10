@@ -55,7 +55,7 @@ export default function Register() {
       <form action={formAction} className="panel" style={{ padding: "2rem" }}>
         <ErrorMessage message={errors?.errorMessage} />
 
-        <div className="col">
+        <div className="stack">
           <Input
             autoComplete="email"
             errors={errors}

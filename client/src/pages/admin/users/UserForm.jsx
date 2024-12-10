@@ -12,10 +12,13 @@ export default function UserForm({ onSubmit, user }) {
     try {
       const data = {
         email: formData.get("email"),
-        password: formData.get("password"),
-        passwordConfirm: formData.get("passwordConfirm"),
         role: formData.get("role"),
       };
+
+      if (!user) {
+        data.password = formData.get("password");
+        data.passwordConfirm = formData.get("passwordConfirm");
+      }
 
       let response;
 
@@ -57,7 +60,7 @@ export default function UserForm({ onSubmit, user }) {
     <form action={formAction}>
       <ErrorMessage message={errors?.errorMessage} />
 
-      <div className="col">
+      <div className="stack">
         <Input
           autoComplete="email"
           defaultValue={user?.email}

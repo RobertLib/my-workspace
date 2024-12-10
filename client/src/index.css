@@ -145,7 +145,7 @@
     }
   }
 
-  .col {
+  .stack {
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -811,6 +811,10 @@
 
   .text-center {
     text-align: center;
+  }
+
+  .text-right {
+    text-align: right;
   }
 
   .text-primary {

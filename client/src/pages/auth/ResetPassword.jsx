@@ -1,24 +1,25 @@
 import { Button, ErrorMessage, Input } from "../../components/ui";
-import { jwtDecode } from "jwt-decode";
-import { Link, useNavigate } from "react-router";
-import { use, useActionState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { useActionState } from "react";
 import apiFetch from "../../utils/apiFetch";
 import logger from "../../utils/logger";
-import SessionContext from "../../contexts/session";
 
-export default function Login() {
-  const { setCurrentUser } = use(SessionContext);
+export default function ResetPassword() {
+  const [searchParams] = useSearchParams();
+
+  const token = searchParams.get("token");
 
   const navigate = useNavigate();
 
   const formState = async (prevState, formData) => {
     try {
       const data = {
-        email: formData.get("email"),
         password: formData.get("password"),
+        passwordConfirm: formData.get("passwordConfirm"),
+        token,
       };
 
-      const response = await apiFetch("/api/login", {
+      const response = await apiFetch("/api/reset-password", {
         method: "POST",
         body: JSON.stringify(data),
       });
@@ -29,17 +30,17 @@ export default function Login() {
         return result;
       }
 
-      logger.info("User logged in:", result);
+      logger.info("Password reset successful:", result);
 
-      localStorage.setItem("token", result.token);
+      navigate("/auth/login");
 
-      setCurrentUser(jwtDecode(result.token));
-
-      navigate("/");
+      alert(
+        "Password reset successful. You can now log in with your new password."
+      );
 
       return null;
     } catch (error) {
-      logger.error("Error logging in:", error);
+      logger.error("Error resetting password:", error);
 
       return { errorMessage: "An error occurred. Please try again." };
     }
@@ -49,49 +50,49 @@ export default function Login() {
 
   return (
     <div className="container container-sm">
-      <h1>Login</h1>
+      <h1>Reset Password</h1>
 
       <form action={formAction} className="panel" style={{ padding: "2rem" }}>
         <ErrorMessage message={errors?.errorMessage} />
 
         <div className="stack">
           <Input
-            autoComplete="email"
+            autoComplete="new-password"
             errors={errors}
             fullWidth
-            label="Email"
-            maxLength={255}
-            name="email"
-            required
-            type="email"
-          />
-
-          <Input
-            autoComplete="current-password"
-            errors={errors}
-            fullWidth
-            label="Password"
+            label="New Password"
             maxLength={255}
             name="password"
             required
             type="password"
           />
+
+          <Input
+            autoComplete="new-password"
+            errors={errors}
+            fullWidth
+            label="Confirm Password"
+            maxLength={255}
+            name="passwordConfirm"
+            required
+            type="password"
+          />
         </div>
 
-        <p className="text-right">
-          <Link className="link" to="/auth/forgot-password">
-            Forgot password?
-          </Link>
-        </p>
-
-        <Button className="w-full" loading={isPending} size="lg" type="submit">
-          Login
+        <Button
+          className="w-full"
+          loading={isPending}
+          size="lg"
+          style={{ marginTop: "1.5rem" }}
+          type="submit"
+        >
+          Reset Password
         </Button>
 
         <p className="text-center" style={{ marginBottom: 0 }}>
           or,{" "}
-          <Link className="link" to="/auth/register">
-            register
+          <Link className="link" to="/auth/login">
+            login
           </Link>
         </p>
       </form>
